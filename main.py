@@ -74,36 +74,25 @@ def run_snake_game():
     while running_game:
         screen.fill(BG)
         draw_apple(screen, apple_pos)
-        draw_score(screen, score, )
-    
+        draw_score(screen, score, font)
+        draw_snake(screen, snake_pos)
 
-
-running = True
-while running:
-    draw_screen()
-    draw_apple()
-    
-
-    # Loop through events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and direction != 3: # Up
-                direction = 1
-            elif event.key == pygame.K_RIGHT and direction != 4: # RIGHT
-                direction = 2
-            elif event.key == pygame.K_DOWN and direction != 1: # Down
-                direction = 3
-            elif event.key == pygame.K_LEFT and direction != 2: #Left
-                direction = 4
-
-    if update_snake > 99:
-        update_snake = 0
-    
-        # Move the snake
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running_game = False
+            elif event.type == pygame.KEYDOWN:
+                new_direction = direction
+                if event.key == pygame.K_UP and direction != 3: # Up
+                    new_direction = 1
+                elif event.key == pygame.K_RIGHT and direction != 4: # RIGHT
+                    new_direction = 2
+                elif event.key == pygame.K_DOWN and direction != 1: # Down
+                    new_direction = 3
+                elif event.key == pygame.K_LEFT and direction != 2: #Left
+                    new_direction = 4
+                direction = new_direction
+        
         head_x, head_y = snake_pos[0]
-
         if direction == 1:
             head_y -= CELL_SIZE
         elif direction == 2:
@@ -113,19 +102,55 @@ while running:
         elif direction == 4:
             head_x -= CELL_SIZE
         
+        snake_pos.insert(0, [head_x, head_y])
+
+        if snake_pos[0] == apple_pos:
+            while apple_pos in snake_pos:
+                apple_pos = [random.randint(0, SCREEN_WIDTH // CELL_SIZE - 1) * CELL_SIZE, random.randint(0, SCREEN_HEIGHT // CELL_SIZE - 1) * CELL_SIZE]
+                score += 1
+        else:
+            snake_pos.pop()
+            
+        if head_x < 0 or head_x >= SCREEN_WIDTH or head_y  < 0 or head_y >= SCREEN_HEIGHT or snake_pos[0] in snake_pos[1:]:
+            running_game = False
+
+        pygame.display.flip()
+        clock.tick(FPS)
+    pygame.mixer.music.stop()
+
+def main_menu():
+    screen_width = 800
+    screen_height = 600
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    pygame.display.set_caption('Main Menu')
+    font = pygame.font.SysFont('Arial', 40)
+
+
+running = True
+while running:
+    draw_screen()
+    
+
+    # Loop through events
+    
+
+    if update_snake > 99:
+        update_snake = 0
+    
+        # Move the snake
+        head_x, head_y = snake_pos[0]
+
+        
+        
         # Update the snake's Position
         snake_pos.insert(0, [head_x, head_y]) # Add a new head
         snake_pos.pop() # Remove the last segment
 
         # Apple collision check
-        if snake_pos[0] == apple_pos:
-            apple_pos = [random.randint(0, SCREEN_WIDTH // CELL_SIZE - 1) * CELL_SIZE, random.randint(0, SCREEN_HEIGHT // CELL_SIZE - 1) * CELL_SIZE]
-            snake_pos.append(snake_pos[-1]) # Create a new segment
-            score += 1
+        
         
         # Collision check with screen boundaries
-        if head_x < 0 or head_x >= SCREEN_WIDTH or head_y  < 0 or head_y >= SCREEN_HEIGHT:
-            running = False
+        
         
     # Draw the snake
     for i in range(len(snake_pos)):
@@ -138,7 +163,7 @@ while running:
             pygame.draw.rect(screen, BODY_INNER, (segment[0] + 1, segment[1] + 1, CELL_SIZE - 2, CELL_SIZE - 2))
         
     
-    pygame.display.flip()
+    
 
     update_snake += 1
 
